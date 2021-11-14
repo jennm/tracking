@@ -148,46 +148,14 @@ class ExactInference(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
 
-        # print "ND", noisyDistance
-        # print "EM", emissionModel
-        # print "PM", pacmanPosition
-        # # "*** YOUR CODE HERE ***"
-        # util.raiseNotDefined()
-
-        allPossible = util.Counter()
         if noisyDistance == None:
             trueDistance = util.manhattanDistance(self.getJailPosition(), pacmanPosition)
-            self.beliefs[self.getJailPosition()] = 1# * self.beliefs[self.getJailPosition()]
-            # if emissionModel[trueDistance] > 0:
-            #     allPossible[self.getJailPosition()] = emissionModel[trueDistance]
-        # else:
-        total = 0
+            self.beliefs[self.getJailPosition()] = 1
         for p in self.legalPositions:
             trueDistance = util.manhattanDistance(p, pacmanPosition)
-            # print "trueDistance:", p, trueDistance,emissionModel[trueDistance]
-            # total += emissionModel[trueDistance]
-            # if emissionModel[trueDistance] > 0:
             self.beliefs[p] = emissionModel[trueDistance] * self.beliefs[p]
-        # print "total", total
-        # print "finished"
-        # Replace this code with a correct observation update
-        # Be sure to handle the "jail" edge case where the ghost is eaten
-        # and noisyDistance is None
-        # allPossible = util.Counter()
-        # for p in self.legalPositions:
-        #     trueDistance = util.manhattanDistance(p, pacmanPosition)
-        #     if emissionModel[trueDistance] > 0:
-        #         allPossible[p] = 1.0
 
-        "*** END YOUR CODE HERE ***"
-        # self.beliefs = allPossible
-        # self.beliefs.normalize()
-        # print "beliefs", self.beliefs
-        # allPossible.normalize()
-        # for p in self.legalPositions:
-        #     self.beliefs[p] *= allPossible[p]
         self.beliefs.normalize()
-        # self.beliefs = allPossible
 
     def elapseTime(self, gameState):
         """
@@ -242,8 +210,16 @@ class ExactInference(InferenceModule):
         are used and how they combine to give us a belief distribution over new
         positions after a time update from a particular position.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        allPositions = util.Counter()
+        for p in self.legalPositions:
+            newGameState = self.setGhostPosition(gameState, p)
+            newPosDist = self.getPositionDistribution(newGameState)
+            for new_p in self.legalPositions:
+                allPositions[new_p] += ((newPosDist[new_p] * self.beliefs[p])) #/ ((newPosDist[new_p] * self.beliefs[new_p]) + (1 - newPosDist[new_p]) * (1 - self.beliefs[new_p]))
+            
+        allPositions.normalize()
+        
+        self.beliefs = allPositions
 
     def getBeliefDistribution(self):
         return self.beliefs
