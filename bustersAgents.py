@@ -18,6 +18,7 @@ from game import Directions
 from keyboardAgents import KeyboardAgent
 import inference
 import busters
+# import Action
 
 class NullGraphics:
     "Placeholder for graphics"
@@ -168,7 +169,7 @@ class GreedyBustersAgent(BustersAgent):
         for distribution in livingGhostPositionDistributions:
             for key in distribution.keys():
                 for i in range(len(probs)):
-                    if probs[i] < distribution[key]:
+                    if probs[i] <= distribution[key]:
                         probs[i] = distribution[key]
                         positions[i]= key
                         break
@@ -177,15 +178,19 @@ class GreedyBustersAgent(BustersAgent):
         min_dist = 100000000000000000
         for i in range(len(positions)):
             if livingGhosts[i + 1]:
+                if positions[i] == 0:
+                    continue
                 dist = self.distancer.getDistance(positions[i], pacmanPosition)
 
                 if min_dist > dist:
                     min_dist = dist
                     closest_ghost = positions[i]
         
-        closest_action = None
+        closest_action = legal[0]
         for action in legal:
             new_pacman_position = Actions.getSuccessor(pacmanPosition, action)
+            if closest_ghost == 0:
+                break
             dist = self.distancer.getDistance(closest_ghost, new_pacman_position)
             if dist < min_dist:
                 min_dist = dist
