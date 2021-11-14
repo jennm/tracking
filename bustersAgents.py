@@ -12,6 +12,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from random import lognormvariate
 import util
 from game import Agent
 from game import Directions
@@ -160,31 +161,33 @@ class GreedyBustersAgent(BustersAgent):
         pacmanPosition = gameState.getPacmanPosition()
         legal = [a for a in gameState.getLegalPacmanActions()]
         livingGhosts = gameState.getLivingGhosts()
+
         livingGhostPositionDistributions = \
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         
-        positions = [0] * (len(livingGhosts) - 1)
-        probs = [0] * (len(livingGhosts) - 1)
-        for distribution in livingGhostPositionDistributions:
+        positions = [0] * (len(livingGhostPositionDistributions))
+        probs = [0] * (len(livingGhostPositionDistributions))
+        for i in range(len(livingGhostPositionDistributions)):
+            distribution = livingGhostPositionDistributions[i]
             for key in distribution.keys():
-                for i in range(len(probs)):
-                    if probs[i] <= distribution[key]:
-                        probs[i] = distribution[key]
-                        positions[i]= key
-                        break
+                if probs[i] < distribution[key]:
+                    probs[i] = distribution[key]
+                    positions[i] = key
+                elif positions[i] == 0:
+                    positions[i] = key
 
         closest_ghost = 0
         min_dist = 100000000000000000
         for i in range(len(positions)):
-            if livingGhosts[i + 1]:
-                if positions[i] == 0:
-                    continue
-                dist = self.distancer.getDistance(positions[i], pacmanPosition)
+            # if positions[i] == 0:
+            #     print positions
+            #     continue
+            dist = self.distancer.getDistance(positions[i], pacmanPosition)
 
-                if min_dist > dist:
-                    min_dist = dist
-                    closest_ghost = positions[i]
+            if min_dist > dist:
+                min_dist = dist
+                closest_ghost = positions[i]
         
         closest_action = legal[0]
         for action in legal:
@@ -195,5 +198,6 @@ class GreedyBustersAgent(BustersAgent):
             if dist < min_dist:
                 min_dist = dist
                 closest_action = action
+        
         return closest_action
         
